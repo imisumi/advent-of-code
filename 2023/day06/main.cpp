@@ -20,6 +20,24 @@ std::vector<std::string> readFileLines(const std::string& filename)
 	return lines;
 }
 
+std::vector<uint64_t> stringToUintVectr(const std::string& str)
+{
+	std::vector<uint64_t> nums;
+	for (int i = 0; i < str.size(); i++)
+	{
+		while (!std::isdigit(str[i]))
+			i++;
+		uint64_t num = 0;
+		while (std::isdigit(str[i]))
+		{
+			num = num * 10 + str[i] - '0';
+			i++;
+		}
+		nums.push_back(num);
+	}
+	return nums;
+}
+
 uint64_t maxWinRate(uint64_t time, uint64_t distToBeat)
 {
 	uint64_t wins = 0;
@@ -31,7 +49,6 @@ uint64_t maxWinRate(uint64_t time, uint64_t distToBeat)
 	return wins;
 }
 
-
 int main(int argc, char* argv[])
 {
 	if (argc != 2)
@@ -41,29 +58,11 @@ int main(int argc, char* argv[])
 	}
 	std::vector<std::string> fileLines = readFileLines(argv[1]);
 
-	std::vector<int> part_one_times;
-	std::vector<int> part_one_dist;
-	for (int i = 0; i < fileLines.size(); i++)
-	{
-		for (int j = 0; j < fileLines[i].size(); j++)
-		{
-			while (std::isalpha(fileLines[i][j]))
-				j++;
-			while (!std::isdigit(fileLines[i][j]))
-				j++;
-			uint64_t num = 0;
-			while (std::isdigit(fileLines[i][j]))
-			{
-				num *= 10;
-				num += fileLines[i][j] - '0';
-				j++;
-			}
-			if (i == 0)
-				part_one_times.push_back(num);
-			else
-				part_one_dist.push_back(num);
-		}
-	}
+	std::vector<uint64_t> part_one_times;
+	std::vector<uint64_t> part_one_dist;
+	part_one_times = stringToUintVectr(fileLines[0]);
+	part_one_dist = stringToUintVectr(fileLines[1]);
+
 	//! PART ONE
 	uint64_t part_one = 1;
 	for (int i = 0; i < part_one_times.size(); i++)
