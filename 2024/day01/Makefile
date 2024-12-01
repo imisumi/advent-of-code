@@ -10,7 +10,7 @@ clean:
 	rm -f $(NAME)
 
 run: all
-	./$(NAME) input
+	./$(NAME) $(INPUT)
 
 test: all
-	./$(NAME) test_input
+	./$(NAME) $(TEST_INPUT)
