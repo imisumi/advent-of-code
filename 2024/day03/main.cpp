@@ -32,38 +32,70 @@ std::vector<std::string> split(const std::string& str, const std::string& delimi
 	return tokens;
 }
 
-bool stringContainsAllowedChars(const std::string& str, const std::string& allowedChars)
-{
-	return str.find_first_not_of(allowedChars) == std::string::npos;
-}
-
-std::vector<std::string> getExpressions(std::string& line)
+std::vector<std::string> getSilverExpressions(const std::string& line)
 {
 	std::vector<std::string> tokens;
-	// size_t startPos = 0;
 
 	for (size_t i = 0; i < line.size(); i++)
 	{
-		// size_t startPos = line.find_first_of("mul(", i);
 		size_t startPos = line.find("mul(", i);
-		size_t endPos = line.find_first_of(")", startPos);
+		size_t endPos = line.find(")", startPos);
 		if (startPos == std::string::npos || endPos == std::string::npos)
 		{
 			break;
 		}
 		std::string token = line.substr(startPos, endPos - startPos + 1);
-		size_t mulPos = token.find_last_of("mul(");
-		token = token.substr(mulPos);
-		if (token.size() < 5 || token.size() > 9)
-		{
-			continue;
-		}
-		if (token.find_first_not_of("mul(),0123456789") != std::string::npos)
+		token = token.substr(token.rfind("mul("));
+		if (token.size() < 8 || token.size() > 12 || token.find_first_not_of("mul(),0123456789") != std::string::npos)
 		{
 			continue;
 		}
 		tokens.emplace_back(token);
 		i = endPos;
+	}
+	return tokens;
+}
+
+bool g_MulEnabled = true;
+
+std::vector<std::string> getGoldExpressions(const std::string& line)
+{
+	std::vector<std::string> tokens;
+
+	for (size_t i = 0; i < line.size(); i++)
+	{
+		size_t enabledPos = line.find("do()", i);
+		size_t disabledPos = line.find("don't()", i);
+
+
+		size_t startPos = line.find("mul(", i);
+		size_t endPos = line.find(")", startPos);
+		if (startPos == std::string::npos || endPos == std::string::npos)
+		{
+			break;
+		}
+		std::string token = line.substr(startPos, endPos - startPos + 1);
+		token = token.substr(token.rfind("mul("));
+		if (token.size() < 8 || token.size() > 12 || token.find_first_not_of("mul(),0123456789") != std::string::npos)
+		{
+			continue;
+		}
+
+		if (enabledPos < startPos && enabledPos < endPos)
+		{
+			g_MulEnabled = true;
+			i = enabledPos;
+		}
+		else if (disabledPos < startPos && disabledPos < endPos)
+		{
+			g_MulEnabled = false;
+			i = disabledPos;
+		}
+		else if (g_MulEnabled)
+		{
+			tokens.emplace_back(token);
+			i = endPos;
+		}
 	}
 	return tokens;
 }
@@ -76,18 +108,24 @@ int main(int argc, char* argv[])
 	int gold = 0;
 	for (auto& line : input)
 	{
-		std::vector<std::string> tokens = getExpressions(line);
-		for (const auto& token : tokens)
+		for (const auto& token : getSilverExpressions(line))
 		{
-			// remove brackets
-			std::string expression = token.substr(1, token.size() - 2);
-			std::cout << expression << std::endl;
+			// remove "mul(" and ")"
+			std::string expression = token.substr(4, token.size() - 4 - 1);
 			std::vector<std::string> parts = split(expression, ",");
-			int num1 = std::stoi(parts[0]);
-			int num2 = std::stoi(parts[1]);
-			silver += num1 * num2;
-			// std::cout << expression << std::endl;
+			
+			silver += std::stoi(parts[0]) * std::stoi(parts[1]);
 		}
+
+		for (const auto& token : getGoldExpressions(line))
+		{
+			// remove "mul(" and ")"
+			std::string expression = token.substr(4, token.size() - 4 - 1);
+			std::vector<std::string> parts = split(expression, ",");
+			
+			gold += std::stoi(parts[0]) * std::stoi(parts[1]);
+		}
+		
 	}
 
 	std::cout << "silver: " << silver << std::endl;
